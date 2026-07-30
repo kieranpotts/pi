@@ -16,10 +16,20 @@
  * `PARAMETER`, ie. tuning.
  *
  * HOW A ROLE IS APPLIED. `/role` records a name; `before_agent_start` reads
- * that role's file FRESH each turn and returns its text as `systemPrompt`,
+ * that role's file FRESH each turn and returns its body as `systemPrompt`,
  * which Pi applies verbatim. Reading fresh is what makes editing a role file
  * take effect on the next message with no re-selection and no restart — the
  * shortest possible loop for iterating on a persona.
+ *
+ * A ROLE MAY ALSO DECLARE HARNESS SETTINGS in a YAML frontmatter block — the
+ * model, the thinking level, the active tools — which are applied ONCE, when
+ * the role is selected, and never re-asserted. That asymmetry with the prompt
+ * text is not an oversight: `before_agent_start` cannot carry these settings,
+ * and pushing them imperatively from inside it breaks in two specific ways.
+ * `settings.ts` documents both, along with the consequences the user chose:
+ * settings are NOT restored when a role is cleared, and a manual `/model` after
+ * selecting a role wins. Frontmatter therefore does not live-reload the way the
+ * body does — edit it and re-select.
  *
  * AND WHAT "VERBATIM" COSTS. Pi assembles far more than an identity: the
  * project's `AGENTS.md`, the discovered skills, the tool list, the working
@@ -38,10 +48,12 @@
  * entry point is the thin glue to the `ExtensionAPI`.
  */
 
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent'
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent'
 import { homedir } from 'node:os'
 import { discoverRoles, NO_ROLE, readRole, roleDirs } from './roles.ts'
 import { composeRolePrompt } from './prompt.ts'
+import { parseRole, type RoleSettings } from './frontmatter.ts'
+import { applyRoleSettings } from './settings.ts'
 
 /** Session entry type recording a selection, so a resume can restore it. */
 const SELECTION_ENTRY = 'role-selection'
@@ -69,6 +81,40 @@ export default function (pi: ExtensionAPI): void {
     selected = role
     missingWarned = false
     pi.appendEntry<SelectionData>(SELECTION_ENTRY, { role: role ?? null })
+  }
+
+  /**
+   * Select a role and apply the harness settings its frontmatter declares.
+   *
+   * Settings are applied HERE — once, on an explicit selection — and never
+   * re-asserted per turn. See `settings.ts` for why that is the only workable
+   * place, and for the consequence: they are not restored when the role is
+   * cleared, and a later manual `/model` wins.
+   */
+  const activate = async (
+    name: string,
+    path: string,
+    ctx: ExtensionCommandContext
+  ): Promise<void> => {
+    select(name)
+
+    const text = await readRole(path)
+    if (text === undefined) {
+      ctx.ui.notify(`Role: ${name}, but its file could not be read.`, 'warning')
+      return
+    }
+
+    const { settings, problems } = parseRole(text)
+    const applied = await applyRoleSettings(settings, pi, ctx)
+
+    const summary = describeSettings(settings)
+    ctx.ui.notify(`Role: ${name}${summary === '' ? '' : ` (${summary})`}`, 'info')
+
+    /* Reported after the confirmation, so the role is known to be active even
+       when part of what it asked for could not be done. */
+    for (const problem of [...problems, ...applied]) {
+      ctx.ui.notify(`Role "${name}": ${problem}`, 'warning')
+    }
   }
 
   /*
@@ -110,12 +156,12 @@ export default function (pi: ExtensionAPI): void {
       }
 
       if (requested.length > 0) {
-        if (!roles.has(requested)) {
+        const path = roles.get(requested)
+        if (path === undefined) {
           ctx.ui.notify(`Unknown role: ${requested}. Available: ${[...roles.keys()].join(', ')}`, 'error')
           return
         }
-        select(requested)
-        ctx.ui.notify(`Role: ${requested}`, 'info')
+        await activate(requested, path, ctx)
         return
       }
 
@@ -135,8 +181,9 @@ export default function (pi: ExtensionAPI): void {
         return
       }
 
-      select(chosen)
-      ctx.ui.notify(`Role: ${chosen}`, 'info')
+      const path = roles.get(chosen)
+      if (path === undefined) return
+      await activate(chosen, path, ctx)
     },
   })
 
@@ -170,10 +217,17 @@ export default function (pi: ExtensionAPI): void {
     const path = roles.get(selected)
     const text = path !== undefined ? await readRole(path) : undefined
 
+    /* Only the BODY is the prompt: a frontmatter block must never reach the
+       model as instructions. Its settings were applied when the role was
+       selected and are not re-read here — see `settings.ts`. Any problems with
+       it were reported then, so this stays silent about them rather than
+       repeating itself on every turn. */
+    const body = text === undefined ? undefined : parseRole(text).body
+
     /* Gone, or emptied. Keep the selection rather than clearing it: the file
        may be mid-edit or briefly moved, and silently forgetting the user's
        choice is worse than one warning and a default prompt for a turn. */
-    if (text === undefined || text.trim().length === 0) {
+    if (body === undefined || body.trim().length === 0) {
       if (!missingWarned) {
         missingWarned = true
         ctx.ui.notify(`Role "${selected}" is unavailable. Using Pi's default prompt.`, 'warning')
@@ -182,8 +236,30 @@ export default function (pi: ExtensionAPI): void {
     }
 
     missingWarned = false
-    return { systemPrompt: composeRolePrompt(text, event.systemPromptOptions) }
+    return { systemPrompt: composeRolePrompt(body, event.systemPromptOptions) }
   })
+}
+
+/**
+ * A short summary of what a role's frontmatter changes, for the confirmation
+ * message. Empty when the role declares nothing.
+ *
+ * Worth showing rather than applying silently: two of these settings persist
+ * into `settings.json`, so a role quietly repointing the default model would be
+ * a surprise the next time Pi starts.
+ */
+function describeSettings (settings: RoleSettings): string {
+  const parts: string[] = []
+  if (settings.provider !== undefined && settings.model !== undefined) {
+    parts.push(`${settings.provider}/${settings.model}`)
+  }
+  if (settings.thinking !== undefined) {
+    parts.push(`thinking: ${settings.thinking}`)
+  }
+  if (settings.tools !== undefined) {
+    parts.push(settings.tools.length === 0 ? 'no tools' : `tools: ${settings.tools.join(', ')}`)
+  }
+  return parts.join('; ')
 }
 
 /**

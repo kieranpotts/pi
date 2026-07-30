@@ -26,11 +26,20 @@ interface CommandOptions {
   handler: (args: string, ctx: never) => Promise<void>
 }
 
+/** Harness settings the extension pushed, in the order it pushed them. */
+interface Applied {
+  calls: string[]
+  tools?: string[]
+  thinking?: string
+  model?: string
+}
+
 /** What the stub harness captured when the extension registered itself. */
 interface Harness {
   hooks: Map<string, Handler>
   command: CommandOptions
   entries: Array<{ customType: string, data: unknown }>
+  applied: Applied
 }
 
 let dir: string
@@ -55,10 +64,17 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true })
 })
 
-/** Load the extension against a stub `ExtensionAPI`. */
-async function load (): Promise<Harness> {
+/**
+ * Load the extension against a stub `ExtensionAPI`.
+ *
+ * The four settings methods are stubbed rather than exercised for real: Pi's
+ * `setModel` and `setThinkingLevel` write through to `settings.json`, which a
+ * test suite has no business doing to the machine running it.
+ */
+async function load (knownTools = ['read', 'bash', 'edit', 'write', 'grep', 'find', 'ls']): Promise<Harness> {
   const hooks = new Map<string, Handler>()
   const entries: Array<{ customType: string, data: unknown }> = []
+  const applied: Applied = { calls: [] }
   let command: CommandOptions | undefined
 
   const module = await import('../../../src/extensions/role-switcher/index.ts')
@@ -67,10 +83,24 @@ async function load (): Promise<Harness> {
     on: (event: string, handler: Handler) => { hooks.set(event, handler) },
     registerCommand: (_name: string, options: CommandOptions) => { command = options },
     appendEntry: (customType: string, data: unknown) => { entries.push({ customType, data }) },
+    getAllTools: () => knownTools.map((name) => ({ name })),
+    setActiveTools: (names: string[]) => {
+      applied.calls.push('setActiveTools')
+      applied.tools = names
+    },
+    setModel: async (model: { id: string }) => {
+      applied.calls.push('setModel')
+      applied.model = model.id
+      return true
+    },
+    setThinkingLevel: (level: string) => {
+      applied.calls.push('setThinkingLevel')
+      applied.thinking = level
+    },
   })
 
   if (command === undefined) throw new Error('the /role command was not registered')
-  return { hooks, command, entries }
+  return { hooks, command, entries, applied }
 }
 
 /** Notifications a context collected, newest last. */
@@ -85,6 +115,7 @@ function context (options: {
   select?: (title: string, choices: string[]) => Promise<string | undefined>
   sessionEntries?: unknown[]
   hasUI?: boolean
+  modelFound?: boolean
 } = {}): { ctx: never, notes: Notes, offered: string[][] } {
   const notes: Notes = []
   const offered: string[][] = []
@@ -99,6 +130,9 @@ function context (options: {
       },
     },
     sessionManager: { getEntries: () => options.sessionEntries ?? [] },
+    modelRegistry: {
+      find: (provider: string, id: string) => (options.modelFound ?? true) ? { id, provider } : undefined,
+    },
   }
   return { ctx: ctx as never, notes, offered }
 }
@@ -364,6 +398,150 @@ describe('applying a role each turn', () => {
 
       assert.equal(await hooks.get('before_agent_start')!(turnEvent(), ctx), undefined)
     })
+  })
+})
+
+describe('role frontmatter', () => {
+  const withSettings = [
+    '---',
+    'provider: anthropic',
+    'model: claude-sonnet-5',
+    'thinking: high',
+    'tools: [read, grep]',
+    '---',
+    'You are a meticulous code reviewer.',
+  ].join('\n')
+
+  it('applies the declared settings when the role is selected', async () => {
+    await userRole('code-reviewer', withSettings)
+    const { command, applied } = await load()
+    const { ctx } = context()
+
+    await command.handler('code-reviewer', ctx)
+
+    assert.equal(applied.model, 'claude-sonnet-5')
+    assert.equal(applied.thinking, 'high')
+    assert.deepEqual(applied.tools, ['read', 'grep'])
+  })
+
+  /* Configuration must not reach the model as instructions. */
+  it('keeps the frontmatter block out of the system prompt', async () => {
+    await userRole('code-reviewer', withSettings)
+    const { hooks, command } = await load()
+    const { ctx } = context()
+    await command.handler('code-reviewer', ctx)
+
+    const result = await hooks.get('before_agent_start')!(turnEvent(), ctx) as { systemPrompt: string }
+    assert.ok(result.systemPrompt.startsWith('You are a meticulous code reviewer.'))
+    assert.equal(result.systemPrompt.includes('claude-sonnet-5'), false)
+    assert.equal(result.systemPrompt.includes('provider'), false)
+  })
+
+  it('names what it changed in the confirmation', async () => {
+    await userRole('code-reviewer', withSettings)
+    const { command } = await load()
+    const { ctx, notes } = context()
+
+    await command.handler('code-reviewer', ctx)
+
+    const confirmation = notes.find((n) => n.type === 'info')!
+    assert.match(confirmation.message, /anthropic\/claude-sonnet-5/)
+    assert.match(confirmation.message, /thinking: high/)
+    assert.match(confirmation.message, /tools: read, grep/)
+  })
+
+  it('selects the role and warns when part of its frontmatter is unusable', async () => {
+    await userRole('code-reviewer', '---\nthinking: ludicrous\n---\nYou are a reviewer.')
+    const { hooks, command } = await load()
+    const { ctx, notes } = context()
+
+    await command.handler('code-reviewer', ctx)
+
+    assert.ok(notes.some((n) => n.type === 'warning' && /thinking/.test(n.message)))
+
+    /* The persona still installs — a bad setting must not make a role unusable. */
+    const result = await hooks.get('before_agent_start')!(turnEvent(), ctx) as { systemPrompt: string }
+    assert.ok(result.systemPrompt.startsWith('You are a reviewer.'))
+  })
+
+  it('applies nothing for a role with no frontmatter', async () => {
+    await userRole('code-reviewer', 'You are a reviewer.')
+    const { command, applied } = await load()
+    const { ctx } = context()
+
+    await command.handler('code-reviewer', ctx)
+
+    assert.deepEqual(applied.calls, [])
+  })
+
+  /*
+   * Settings are pushed imperatively at SELECTION time. Re-asserting them per
+   * turn would fight a manual `/model` and, worse, would compose the prompt from
+   * a stale tool list — see `settings.ts`.
+   */
+  it('does not re-apply settings on every turn', async () => {
+    await userRole('code-reviewer', withSettings)
+    const { hooks, command, applied } = await load()
+    const { ctx } = context()
+    await command.handler('code-reviewer', ctx)
+    const afterSelect = applied.calls.length
+
+    await hooks.get('before_agent_start')!(turnEvent(), ctx)
+    await hooks.get('before_agent_start')!(turnEvent(), ctx)
+
+    assert.equal(applied.calls.length, afterSelect, 'turns must not re-push settings')
+  })
+
+  /*
+   * The documented consequence of applying without a snapshot: clearing a role
+   * drops the persona and LEAVES the settings. Asserted so the behavior is a
+   * decision on the record rather than something that quietly changes.
+   */
+  it('leaves the settings in place when the role is cleared', async () => {
+    await userRole('code-reviewer', withSettings)
+    const { command, applied } = await load()
+    const { ctx } = context()
+    await command.handler('code-reviewer', ctx)
+    const afterSelect = [...applied.calls]
+
+    await command.handler('none', ctx)
+
+    assert.deepEqual(applied.calls, afterSelect, 'clearing must not restore anything')
+    assert.equal(applied.model, 'claude-sonnet-5')
+  })
+
+  it('warns without disabling every tool when no declared tool exists here', async () => {
+    await userRole('reviewer', '---\ntools: [read, grep]\n---\nBody.')
+    const { command, applied } = await load(['mcp_read_file'])
+    const { ctx, notes } = context()
+
+    await command.handler('reviewer', ctx)
+
+    assert.equal(applied.tools, undefined)
+    assert.ok(notes.some((n) => n.type === 'warning' && /none of these tools/.test(n.message)))
+  })
+
+  it('reports a model the registry cannot resolve', async () => {
+    await userRole('reviewer', '---\nprovider: nope\nmodel: nope\n---\nBody.')
+    const { command } = await load()
+    const { ctx, notes } = context({ modelFound: false })
+
+    await command.handler('reviewer', ctx)
+
+    assert.ok(notes.some((n) => n.type === 'warning' && /not in the registry/.test(n.message)))
+  })
+
+  /* Editing frontmatter needs a re-select; editing the body does not. */
+  it('picks up edited frontmatter on re-selection', async () => {
+    await userRole('reviewer', '---\nthinking: low\n---\nBody.')
+    const { command, applied } = await load()
+    const { ctx } = context()
+    await command.handler('reviewer', ctx)
+    assert.equal(applied.thinking, 'low')
+
+    await userRole('reviewer', '---\nthinking: max\n---\nBody.')
+    await command.handler('reviewer', ctx)
+    assert.equal(applied.thinking, 'max')
   })
 })
 

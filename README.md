@@ -4,7 +4,7 @@
 
 These extensions are for using Pi for at-keyboard AI-assisted software
 development. See also my [Genie][genie] project, which wraps Pi with
-hardened infrastructure — a sandboxed container, model routing proxy,
+hardened infrastructure — a sandboxed container, a model routing proxy,
 and a gated MCP server — for secure away-from-keyboard agentic loop
 workflows.
 
@@ -44,7 +44,9 @@ its README, which provides detailed usage instructions.
   mid-session and with no restart. Roles are discovered as `<name>.md` files in
   `~/.pi/roles/` and `.pi/roles/`, so adding one is dropping in a Markdown file.
   Seven are shipped and installed for you. The project's `AGENTS.md`, skills,
-  and tool list all survive the swap.
+  and tool list all survive the swap. A role can also declare the model,
+  thinking level, and tool set it wants in YAML frontmatter — the shipped
+  analysis roles use it to go read-only.
 
 An install script is provided to automate the installation of these extensions
 into Pi. First, make the script executable:

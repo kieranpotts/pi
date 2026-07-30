@@ -18,7 +18,8 @@ The repository currently ships three extensions:
   at-keyboard use.
 - `role-switcher`, which swaps Pi's system prompt for a named role, discovered
   as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with
-  `/role`.
+  `/role`. A role may also declare its model, thinking level, and tool set in
+  YAML frontmatter, applied when the role is selected.
 
 See each extension's own README under `src/extensions/<name>/` for details.
 
@@ -58,10 +59,11 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 
 - **`src/roles/<name>.md`**:
   Seed role definitions for `role-switcher`, copied to `~/.pi/roles/`
-  by `run/install`. Data, not code: each file's contents become a
-  system prompt verbatim, so they hold prompt text and nothing else.
-  Deliberately outside `src/extensions/` — the installer copies an
-  extension directory wholesale, so seeds kept there would ship into
+  by `run/install`. Data, not code: each file's body becomes a system
+  prompt verbatim, optionally preceded by a YAML frontmatter block
+  declaring model, thinking level, and tools. Deliberately outside
+  `src/extensions/` — the installer copies an extension directory
+  wholesale, so seeds kept there would ship into
   `~/.pi/agent/extensions/` as dead weight.
 
 - **`run/`**:
