@@ -53,7 +53,20 @@ pi_extensions_dir="${HOME}/.pi/agent/extensions"
 available_extensions=(
   "pickling-penguins"
   "permission-gate"
+  "role-switcher"
 )
+
+# Seed role definitions shipped by this repo, and where `role-switcher`
+# discovers user-level roles. Copied only when the target does not already
+# exist, so a role the user has edited is never overwritten.
+
+# Read by the sourced helpers in run/inc/fn/.
+# shellcheck disable=SC2034
+roles_src_dir="${repo_root}/src/roles"
+
+# Read by the sourced helpers in run/inc/fn/.
+# shellcheck disable=SC2034
+pi_roles_dir="${HOME}/.pi/roles"
 
 #
 # Includes.
@@ -92,10 +105,16 @@ main() {
   check_prerequisites
 
   # With no arguments, install everything; otherwise install the named ones.
+  # Role seeds accompany `role-switcher`, so they are only laid down when that
+  # extension is part of this run.
   if [[ $# -eq 0 ]]; then
     install_all_extensions
+    install_role_seeds
   else
     install_named_extensions "$@"
+    if printf '%s\n' "$@" | grep -qx "role-switcher"; then
+      install_role_seeds
+    fi
   fi
 
   post_install_instructions

@@ -7,6 +7,8 @@
 #   available_extensions  - Names of installable extensions.
 #   src_dir               - Where extension sources live in this repo.
 #   pi_extensions_dir     - Where extensions are installed to.
+#   roles_src_dir         - Where `role-switcher`'s seed roles live in this repo.
+#   pi_roles_dir          - Where roles are discovered from, per user.
 #
 
 # Globals above are assigned in `run/install` and sourced before this file.
@@ -67,6 +69,9 @@ list_available_extensions() {
         ;;
       permission-gate)
         desc="Interactive confirmation gate on mutating tool calls and sensitive-file access, default-deny on timeout"
+        ;;
+      role-switcher)
+        desc="Swaps the system prompt for a named role (\`/role\`), discovered from ~/.pi/roles/ and .pi/roles/"
         ;;
       *)
         desc=""
@@ -180,4 +185,42 @@ install_named_extensions() {
   done
 
   print_summary "${success_count}" "${fail_count}"
+}
+
+# install_role_seeds - Copy this repo's role definitions to the user's roles dir.
+#
+# `role-switcher` discovers roles as `<name>.md` files in `~/.pi/roles/`, so the
+# personas this repo ships have to land there to be selectable. They are seeds,
+# not managed files: an existing role of the same name is LEFT ALONE rather than
+# replaced, because these files are meant to be edited and an installer that
+# overwrote them would discard the user's own wording on every run. Deleting one
+# and re-running is the way to get the original back.
+#
+# Reads the globals `roles_src_dir` and `pi_roles_dir` from `run/install`.
+#
+install_role_seeds() {
+  if [[ ! -d "${roles_src_dir}" ]]; then
+    print_warning "No role seeds found at ${roles_src_dir}."
+    return 0
+  fi
+
+  print_info "Installing role definitions..."
+  mkdir -p "${pi_roles_dir}"
+
+  local copied=0 kept=0 role name
+  for role in "${roles_src_dir}"/*.md; do
+    # Guard against the glob staying literal when the directory has no matches.
+    [[ -e "${role}" ]] || continue
+
+    name="$(basename "${role}")"
+    if [[ -e "${pi_roles_dir}/${name}" ]]; then
+      kept=$((kept + 1))
+      continue
+    fi
+
+    cp "${role}" "${pi_roles_dir}/${name}"
+    copied=$((copied + 1))
+  done
+
+  print_success "Roles: ${copied} installed, ${kept} left as-is, in ${pi_roles_dir}/."
 }

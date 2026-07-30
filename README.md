@@ -38,6 +38,14 @@ its README, which provides detailed usage instructions.
   at-keyboard use — no logging, the dialog itself is the record. See
   [`genie`][genie] for the away-from-keyboard, unattended counterpart.
 
+- [**`role-switcher`**](./src/extensions/role-switcher/README.md): \
+  Swaps Pi's system prompt for a named role — `product-manager`,
+  `software-architect`, `code-reviewer`, and so on — from a `/role` menu,
+  mid-session and with no restart. Roles are discovered as `<name>.md` files in
+  `~/.pi/roles/` and `.pi/roles/`, so adding one is dropping in a Markdown file.
+  Seven are shipped and installed for you. The project's `AGENTS.md`, skills,
+  and tool list all survive the swap.
+
 An install script is provided to automate the installation of these extensions
 into Pi. First, make the script executable:
 
@@ -68,8 +76,13 @@ Examples:
 ./run/install                             # Install all extensions.
 ./run/install pickling-penguins           # Install the picking penguins extension only.
 ./run/install permission-gate             # Install the permission gate only.
+./run/install role-switcher               # Install the role switcher, and seed ~/.pi/roles/.
 ./run/install --list                      # See what's available to install.
 ```
+
+Installing `role-switcher` also copies this repository's role definitions from
+`src/roles/` to `~/.pi/roles/`, where the extension discovers them. Those are
+seeds: a role you have already edited is left alone rather than overwritten.
 
 The same script can be used to update the installed extensions to the latest
 versions in this repository. If an extension is already installed, it is first

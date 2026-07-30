@@ -9,13 +9,16 @@ extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which
 copies each extension directory verbatim. Pi runs the source TypeScript
 directly – there is no build step.
 
-The repository currently ships two extensions:
+The repository currently ships three extensions:
 
 - `pickling-penguins`, which replaces the default "Working…" status with
   randomly composed nonsense.
 - `permission-gate`, an interactive, default-deny confirmation gate for
   mutating tool calls and sensitive-file access, built for eyes-on,
   at-keyboard use.
+- `role-switcher`, which swaps Pi's system prompt for a named role, discovered
+  as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with
+  `/role`.
 
 See each extension's own README under `src/extensions/<name>/` for details.
 
@@ -52,6 +55,14 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
   Tests for the Node test runner, mirroring the `src/extensions/`
   layout (`*.test.ts`). Kept out of `src/` so the installer never
   ships them.
+
+- **`src/roles/<name>.md`**:
+  Seed role definitions for `role-switcher`, copied to `~/.pi/roles/`
+  by `run/install`. Data, not code: each file's contents become a
+  system prompt verbatim, so they hold prompt text and nothing else.
+  Deliberately outside `src/extensions/` — the installer copies an
+  extension directory wholesale, so seeds kept there would ship into
+  `~/.pi/agent/extensions/` as dead weight.
 
 - **`run/`**:
   Dev scripts – `install`, `lint`, `fix`, `typecheck`, `test`, `check`.
