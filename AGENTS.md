@@ -2,24 +2,16 @@
 
 Personal and experimental extensions for the [Pi coding agent](https://pi.dev)
 (`@earendil-works/pi-coding-agent`). Each extension is a TypeScript module
-that hooks into Pi's lifecycle events or registers tools, commands, or UI.
+that hooks into Pi's lifecycle events.
 
 Extensions live under `src/extensions/<name>/` and are installed into Pi's
 extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which
-copies each extension directory verbatim. Pi runs the TypeScript directly –
-there is no build step.
+copies each extension directory verbatim. Pi runs the source TypeScript
+directly – there is no build step.
 
-Non-extension infrastructure for the secure local agent architecture
-(Docker images, compose files, the model proxy, MCP server wiring) lives
-under `src/infrastructure/`. This is NOT  installable and `run/install`
-MUST NOT copy it into Pi's extensions directory.
-See [docs/solution.md](./docs/solution.md) for the design, and
-[src/infrastructure/README.md](./src/infrastructure/README.md) for the runbook.
-
-The repository ships several extensions, including `pickling-penguins`,
-which replaces the default "Working…" status with randomly composed
-nonsense. See each extension's own README under `src/extensions/<name>/`
-for details.
+The repository currently ships one extension, `pickling-penguins`, which
+replaces the default "Working…" status with randomly composed nonsense. See
+its own README under `src/extensions/pickling-penguins/` for details.
 
 The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD,
 SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
@@ -28,13 +20,13 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 ## Tech stack
 
 - TypeScript, run directly by Pi and by Node's native type stripping – no
-  compile or bundling step. Type *checking* is a separate gate (`tsc --noEmit`);
+  compile or bundling step. Type checking is a separate gate (`tsc --noEmit`) —
   "no build" means nothing is emitted or bundled, not that types are unchecked.
 
 - Node.js 22.18+ (development uses Node 24) for the tooling and the built-in
   test runner.
 
-- ESLint with [neostandard](https://github.com/neostandard/neostandard)style,
+- ESLint with [neostandard](https://github.com/neostandard/neostandard) style,
   ie. single quotes and no semicolons.
 
 - The Node.js built-in test runner (`node:test`, `node:assert`).
@@ -49,11 +41,6 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
   An extension's entry point, with a default-exported factory
   `(pi: ExtensionAPI) => void`. Helper modules (eg. `messages.ts`)
   sit alongside it and are imported with explicit `.ts` extensions.
-
-- **`src/infrastructure/`**:
-  Non-extension infrastructure for the secure local agent architecture
-  (Docker, compose, model proxy, MCP server wiring). Not installable –
-  see the rule below.
 
 - **`test/extensions/<name>/`**:
   Tests for the Node test runner, mirroring the `src/extensions/`
@@ -74,9 +61,6 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 - **`run/inc/var/`**:
   Shared shell variables (ANSI codes).
 
-- **`docs/`**:
-  Requirements and installation docs.
-
 - **`CONTRIBUTING.md`**:
   How to develop, lint, test, and check extensions.
 
@@ -84,7 +68,7 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
   Lint configuration and the `npm` script aliases.
 
 - **`.github/workflows/`**:
-  CI – `check` (lint and test), `validate-commit-messages`, and `sync-labels`.
+  CI: `check` (lint and test), `validate-commit-messages`, and `sync-labels`.
 
 ## Tools
 
@@ -126,11 +110,6 @@ Each `run/` script is also exposed as an `npm run` alias
 - MUST keep tests under `test/extensions/<name>/`, mirroring the `src/extensions/`
   layout, and never inside `src/`, because `run/install` copies each extension
   directory verbatim and would otherwise ship them.
-
-- MUST keep non-extension infrastructure under `src/infrastructure/` and MUST
-  NOT add it to the `available_extensions` array in `run/install`, nor re-point
-  `src_dir` away from `src/extensions`. Infrastructure is not an installable
-  Pi extension.
 
 - MUST run `./run/check` and get a clean pass before committing. CI runs the
   same command on every push and pull request. `check` now includes `typecheck`,

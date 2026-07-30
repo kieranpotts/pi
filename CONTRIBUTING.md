@@ -5,8 +5,7 @@
 > project. These contributing guidelines are for the benefit of the author.
 
 This page covers working on the extensions themselves. To just install and use
-them, see the Requirements and Usage sections of the
-[README](./README.md) instead.
+them, see the [README](./README.md) instead.
 
 The [Pi extension docs](https://pi.dev/docs/latest/extensions) are the primary
 reference for writing extensions — the `ExtensionAPI`, lifecycle events, custom
@@ -23,8 +22,6 @@ dev dependencies once, from the repository root:
 npm install
 ```
 
-[node]: https://nodejs.org
-
 ## Project layout
 
 Each extension lives in its own directory under `src/extensions/`, with an
@@ -37,20 +34,11 @@ src/
         └── index.ts
 ```
 
-Everything else under `src/` is **not** an extension and is not installable —
-`src/infrastructure/` holds the container, compose, proxy, and MCP wiring, and
-`./run/install` copies only from `src/extensions/`.
+Extensions must be registered in two places:
 
-A new extension is not picked up by existing in the repo. Register it in two
-places, both of which list extensions explicitly so that nothing installs by
-accident:
-
-- `run/install` — add the name to the `available_extensions` array.
-- `run/inc/fn/extensions.sh` — add a `case` branch giving its one-line
+- `run/install`. Add the name to the `available_extensions` array.
+- `run/inc/fn/extensions.sh`. Add a `case` branch giving its one-line
   description.
-
-To ship it inside the hardened container as well, add a `COPY` line to
-[`src/infrastructure/pi-container/Dockerfile`](./src/infrastructure/pi-container/Dockerfile).
 
 ## Linting
 
@@ -62,11 +50,8 @@ config in [`eslint.config.js`](./eslint.config.js). Two scripts wrap it:
 ./run/fix    # Auto-fix what can be fixed, then report the rest.
 ```
 
-Both forward any extra arguments to ESLint, eg. `./run/lint --quiet`). The
+Both forward any extra arguments to ESLint, eg. `./run/lint --quiet`. The
 commands can also be executed as `npm run lint` and `npm run fix`.
-
-[eslint]: https://eslint.org
-[neostandard]: https://github.com/neostandard/neostandard
 
 ## Testing
 
@@ -87,8 +72,6 @@ with an extension.
 Extra arguments are forwarded to `node --test`, and the command is also exposed
 as `npm test`.
 
-[node-test]: https://nodejs.org/api/test.html
-
 ## Running all checks
 
 `./run/check` runs the linter and then the tests in sequence, stopping at the
@@ -106,7 +89,7 @@ automatically.
 
 ## Commit messages
 
-Commit messages are validated by a [pre-commit][pre-commit] hook and again in CI.
+Commit messages are validated by a [pre-commit][pre-commit] hook, and again in CI.
 
 ```sh
 # Run once globally:
@@ -116,10 +99,14 @@ pipx install pre-commit
 pre-commit install
 ```
 
-[pre-commit]: https://pre-commit.com
-
 ## Versioning
 
 The extensions are not versioned. There are no release tags, version numbers,
-or changelog — the latest commit on the default branch is the only supported
+or changelog. The latest commit on the default branch is the only supported
 state. Reinstall with `./run/install` to pick up changes.
+
+[eslint]: https://eslint.org
+[neostandard]: https://github.com/neostandard/neostandard
+[node]: https://nodejs.org
+[node-test]: https://nodejs.org/api/test.html
+[pre-commit]: https://pre-commit.com

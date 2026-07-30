@@ -65,12 +65,6 @@ list_available_extensions() {
       pickling-penguins)
         desc="Replaces the \"Working...\" status with randomly composed nonsense"
         ;;
-      mcp-client)
-        desc="Connects Pi to an MCP filesystem server (via the Docker MCP gateway) for mediated file access"
-        ;;
-      permission-gate)
-        desc="Refuses sensitive filenames outright, requires interactive confirmation for mutating tool calls, default-deny on timeout, redacts secret-shaped values from tool output, and logs every call, turn boundary, and model-request shape"
-        ;;
       *)
         desc=""
         ;;
