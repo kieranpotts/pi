@@ -24,6 +24,17 @@
  * project) is not this module's job, wherever it is enforced. This module
  * does not duplicate it — it only answers "is this name one we should always
  * ask about?".
+ *
+ * WHAT THIS DOES NOT CATCH — do not mistake it for a secret scanner:
+ *
+ *   - Matching is on the BASENAME, so location carries no signal. `.ssh/config`
+ *     is not matched (the directory is not consulted) and neither is a secret
+ *     sitting in `config.json`, `settings.yml`, or any other conventionally
+ *     named file. It catches conventional SECRET names, not secrets.
+ *
+ *   - Nothing reads file CONTENTS. A private key saved as `notes.txt` is
+ *     invisible here, and always will be — this only ever sees the argument
+ *     string, never the file.
  */
 
 import { basename } from 'node:path'

@@ -77,6 +77,21 @@ fires before a tool is invoked:
 None. There are no settings and no environment variables. Once installed,
 the extension just does its thing.
 
+## Limits
+
+Read these before treating the sensitive-file check as a boundary.
+
+- **Matching is by NAME, not by content or location.** A secret in a file
+  called `config.json` is not matched, and neither is `.ssh/config` — only the
+  basename is inspected, never the directory or the file's contents. The
+  patterns catch conventional secret names; this is not a secret scanner.
+
+- **It only sees the arguments a tool call carries.** `bash` is not gated by
+  this extension at all — a `command` string is not a path-shaped argument, so
+  `cat ~/.ssh/id_rsa` run through the shell is invisible here. See
+  [`command-gate`](../command-gate/README.md), which applies the same
+  sensitive-filename check to command tokens instead.
+
 ## Installing
 
 From this repository's root directory, run:

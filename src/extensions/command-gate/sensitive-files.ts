@@ -25,6 +25,21 @@
  * This module only detects. It makes no decision about what happens next, and
  * in particular it does not block anything: `policy.ts` routes a hit to a
  * confirmation, not a denial.
+ *
+ * WHAT THIS DOES NOT CATCH — do not mistake it for a secret scanner:
+ *
+ *   - Matching is on the BASENAME, so location carries no signal. `.ssh/config`
+ *     is not matched (the directory is not consulted) and neither is a secret
+ *     sitting in `config.json`, `settings.yml`, or any other conventionally
+ *     named file. It catches conventional SECRET names, not secrets.
+ *
+ *   - Nothing reads file CONTENTS. A private key in a file called `notes.txt`
+ *     is invisible here, and always will be — this runs before the command
+ *     does, on a string, with no I/O.
+ *
+ * The path fence in `policy.ts` is the stronger tool wherever the operator
+ * knows which DIRECTORY holds the secrets, because it needs no naming
+ * convention to hold. These two are complements, and neither is a boundary.
  */
 
 import { basename } from 'node:path'
