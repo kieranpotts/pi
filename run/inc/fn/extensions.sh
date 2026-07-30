@@ -64,6 +64,9 @@ list_available_extensions() {
   local ext desc
   for ext in "${available_extensions[@]}"; do
     case "${ext}" in
+      command-gate)
+        desc="Replaces the built-in \`bash\` with a no-shell runner: known-good programs run, everything else is confirmed or denied"
+        ;;
       pickling-penguins)
         desc="Replaces the \"Working...\" status with randomly composed nonsense"
         ;;

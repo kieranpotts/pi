@@ -29,6 +29,14 @@ npm install -g @earendil-works/pi-coding-agent
 This repository packages the following Pi extensions. Click the link to see
 its README, which provides detailed usage instructions.
 
+- [**`command-gate`**](./src/extensions/command-gate/README.md): \
+  Locked-down replacement for Pi's built-in `bash`. No shell is ever invoked,
+  so pipes, redirection, chaining, and substitution are rejected outright.
+  Read-only inspection tools run directly; anything else — `python`, `rm`, a
+  `node -e` one-liner, or any command naming a secret — asks you first and
+  defaults to deny. Closes the route around `permission-gate`, which cannot
+  read a `command` argument.
+
 - [**`pickling-penguins`**](./src/extensions/pickling-penguins/README.md): \
   Cosmetic-only replacement for Pi's "Working..." status line. Just for fun.
 
