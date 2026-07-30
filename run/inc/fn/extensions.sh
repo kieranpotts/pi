@@ -65,6 +65,9 @@ list_available_extensions() {
       pickling-penguins)
         desc="Replaces the \"Working...\" status with randomly composed nonsense"
         ;;
+      permission-gate)
+        desc="Interactive confirmation gate on mutating tool calls and sensitive-file access, default-deny on timeout"
+        ;;
       *)
         desc=""
         ;;

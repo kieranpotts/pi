@@ -9,9 +9,15 @@ extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which
 copies each extension directory verbatim. Pi runs the source TypeScript
 directly – there is no build step.
 
-The repository currently ships one extension, `pickling-penguins`, which
-replaces the default "Working…" status with randomly composed nonsense. See
-its own README under `src/extensions/pickling-penguins/` for details.
+The repository currently ships two extensions:
+
+- `pickling-penguins`, which replaces the default "Working…" status with
+  randomly composed nonsense.
+- `permission-gate`, an interactive, default-deny confirmation gate for
+  mutating tool calls and sensitive-file access, built for eyes-on,
+  at-keyboard use.
+
+See each extension's own README under `src/extensions/<name>/` for details.
 
 The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD,
 SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in

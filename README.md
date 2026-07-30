@@ -32,6 +32,12 @@ its README, which provides detailed usage instructions.
 - [**`pickling-penguins`**](./src/extensions/pickling-penguins/README.md): \
   Cosmetic-only replacement for Pi's "Working..." status line. Just for fun.
 
+- [**`permission-gate`**](./src/extensions/permission-gate/README.md): \
+  Interactive, default-deny confirmation before any mutating tool call or any
+  call touching a sensitive file (secrets, key material). Built for eyes-on,
+  at-keyboard use — no logging, the dialog itself is the record. See
+  [`genie`][genie] for the away-from-keyboard, unattended counterpart.
+
 An install script is provided to automate the installation of these extensions
 into Pi. First, make the script executable:
 
@@ -61,6 +67,7 @@ Examples:
 ```sh
 ./run/install                             # Install all extensions.
 ./run/install pickling-penguins           # Install the picking penguins extension only.
+./run/install permission-gate             # Install the permission gate only.
 ./run/install --list                      # See what's available to install.
 ```
 
