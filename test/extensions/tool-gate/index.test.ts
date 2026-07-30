@@ -17,7 +17,7 @@ type Handler = (event: unknown, ctx: unknown) => Promise<unknown>
 /** Load the extension against a stub API. */
 async function loadExtension (): Promise<Handler> {
   let handler: Handler | undefined
-  const module = await import('../../../src/extensions/permission-gate/index.ts')
+  const module = await import('../../../src/extensions/tool-gate/index.ts')
   const register = module.default as (pi: { on: (e: 'tool_call', h: Handler) => void }) => void
   register({ on: (_event, h) => { handler = h } })
   if (handler === undefined) throw new Error('tool_call handler was not registered')
@@ -45,10 +45,10 @@ function approvingUI (): { ctx: { hasUI: boolean, ui: { confirm: (title: string,
   }
 }
 
-describe('permission-gate wiring', () => {
+describe('tool-gate wiring', () => {
   it('registers exactly the tool_call hook', async () => {
     let registered: string | undefined
-    const module = await import('../../../src/extensions/permission-gate/index.ts')
+    const module = await import('../../../src/extensions/tool-gate/index.ts')
     const register = module.default as (pi: { on: (e: string, h: Handler) => void }) => void
     register({ on: (event) => { registered = event } })
     assert.equal(registered, 'tool_call')

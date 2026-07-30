@@ -9,13 +9,18 @@ extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which
 copies each extension directory verbatim. Pi runs the source TypeScript
 directly – there is no build step.
 
-The repository currently ships three extensions:
+The repository currently ships four extensions:
 
+- `command-gate`, which replaces Pi's built-in `bash` with a runner that never
+  invokes a shell: shell operators are rejected, read-only inspection programs
+  run directly, and anything else — an unrecognised program, or a command
+  naming a secret — is confirmed with the operator, default-deny.
 - `pickling-penguins`, which replaces the default "Working…" status with
   randomly composed nonsense.
-- `permission-gate`, an interactive, default-deny confirmation gate for
+- `tool-gate`, an interactive, default-deny confirmation gate for
   mutating tool calls and sensitive-file access, built for eyes-on,
-  at-keyboard use.
+  at-keyboard use. It gates tool *calls*; restricting which tools exist is a
+  separate Pi feature.
 - `role-switcher`, which swaps Pi's system prompt for a named role, discovered
   as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with
   `/role`. A role may also declare its model, thinking level, and tool set in

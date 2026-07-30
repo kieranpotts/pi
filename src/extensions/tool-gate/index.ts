@@ -1,5 +1,11 @@
 /**
- * Interactive permission gate, for eyes-on, at-keyboard Pi sessions.
+ * Interactive gate on tool CALLS, for eyes-on, at-keyboard Pi sessions.
+ *
+ * Note what this gates and what it does not: calls to tools that are already
+ * active, not which tools exist. Restricting the tool SURFACE is a separate Pi
+ * feature (`--tools`, `setActiveTools`, and the `tools` frontmatter key the
+ * read-only roles use). A tool this gate never approves is still registered and
+ * still offered to the model.
  *
  * Intercepts every tool call before it runs (`tool_call` event) and asks the
  * user to approve it before it proceeds, for two kinds of call:

@@ -11,7 +11,7 @@
  * `secret-sentry` extension uses this same detection differently, to enforce
  * an ABSOLUTE refusal instead of a confirmable one.)
  *
- * This lives here because the permission gate's `tool_call` hook is the one
+ * This lives here because the tool gate's `tool_call` hook is the one
  * place that sees EVERY tool call, including any `mcp_*` tools an MCP client
  * extension might register. A plain filesystem MCP server enforces its own
  * allowed-directory boundary but has no notion of sensitive filenames, so

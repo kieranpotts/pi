@@ -53,7 +53,7 @@ pi_extensions_dir="${HOME}/.pi/agent/extensions"
 available_extensions=(
   "command-gate"
   "pickling-penguins"
-  "permission-gate"
+  "tool-gate"
   "role-switcher"
 )
 

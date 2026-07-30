@@ -64,8 +64,8 @@ describe('sensitiveToken', () => {
   })
 })
 
-describe('duplication with permission-gate', () => {
-  it('keeps SENSITIVE_PATTERNS byte-identical to the permission-gate copy', () => {
+describe('duplication with tool-gate', () => {
+  it('keeps SENSITIVE_PATTERNS byte-identical to the tool-gate copy', () => {
     // The two extensions install as self-contained directories and cannot share
     // a module, so the list is duplicated by design. This test is the thing
     // that makes a drift between them loud rather than silent.
@@ -78,7 +78,7 @@ describe('duplication with permission-gate', () => {
 
     assert.equal(
       extract('../../../src/extensions/command-gate/sensitive-files.ts'),
-      extract('../../../src/extensions/permission-gate/sensitive-files.ts')
+      extract('../../../src/extensions/tool-gate/sensitive-files.ts')
     )
   })
 })

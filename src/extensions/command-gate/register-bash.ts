@@ -15,7 +15,7 @@
  * because nothing downstream expands them, and a shell would expand them. The
  * check and the executor have to agree about that, so they stay together.
  *
- * Confirmation defaults to DENY, matching `permission-gate`: a timeout, a
+ * Confirmation defaults to DENY, matching `tool-gate`: a timeout, a
  * dismissed dialog, or a non-interactive session (print/RPC mode with no UI)
  * all block the command rather than waving it through.
  */

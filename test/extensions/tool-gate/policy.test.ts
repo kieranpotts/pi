@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { decide, describeCall, describeForPrompt, requiresConfirmation } from '../../../src/extensions/permission-gate/policy.ts'
+import { decide, describeCall, describeForPrompt, requiresConfirmation } from '../../../src/extensions/tool-gate/policy.ts'
 
 describe('requiresConfirmation', () => {
   for (const t of ['write', 'edit']) {
@@ -58,7 +58,7 @@ describe('describeCall', () => {
 
 describe('describeForPrompt — the display cap', () => {
   it('passes a normal description through untouched', () => {
-    const detail = 'mcp_write_file: /workspace/src/extensions/permission-gate/policy.ts'
+    const detail = 'mcp_write_file: /workspace/src/extensions/tool-gate/policy.ts'
     assert.equal(describeForPrompt(detail), detail)
   })
 

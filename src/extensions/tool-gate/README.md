@@ -1,4 +1,4 @@
-# `permission-gate`
+# `tool-gate`
 
 Out-of-the-box, Pi has no permission popups. Every tool call requested by a
 model is honored by the harness.
@@ -14,6 +14,12 @@ installed, Pi asks for explicit, interactive confirmation before:
 Confirmation defaults to deny, so a timeout or a missing interactive UI
 blocks the operation. Read-only calls that do not touch a sensitive file
 pass straight through, unprompted.
+
+The name is about what it gates: tool **calls**, not the tool **surface**.
+Restricting which tools exist at all is a separate Pi feature — `--tools`,
+`setActiveTools`, and the `tools` frontmatter key that
+[`role-switcher`](../role-switcher/README.md)'s read-only roles use. A tool
+this gate never approves is still registered and still offered to the model.
 
 > [!NOTE]
 > This extension does no logging. It is built for a human watching the
@@ -97,5 +103,5 @@ Read these before treating the sensitive-file check as a boundary.
 From this repository's root directory, run:
 
 ```sh
-./run/install permission-gate
+./run/install tool-gate
 ```

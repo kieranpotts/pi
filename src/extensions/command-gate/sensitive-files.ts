@@ -7,7 +7,7 @@
  * always will be; `cat ~/.ssh/id_rsa` is still something you want to be asked
  * about.
  *
- * DELIBERATE DUPLICATION. `permission-gate/sensitive-files.ts` holds the same
+ * DELIBERATE DUPLICATION. `tool-gate/sensitive-files.ts` holds the same
  * patterns, and Genie's `secret-sentry` holds them a third time. They are kept
  * in step by hand, on purpose: each extension installs as a self-contained
  * directory under `~/.pi/agent/extensions/`, so a shared module would mean one
@@ -16,7 +16,7 @@
  * `SENSITIVE_PATTERNS` below byte-identical to the other copies so a diff
  * between them stays empty and a drift is obvious.
  *
- * What differs from the `permission-gate` copy is only the LOOKUP. There, tool
+ * What differs from the `tool-gate` copy is only the LOOKUP. There, tool
  * inputs are structured, so an explicit list of path-bearing keys avoids
  * mistaking `search_files`'s `pattern: "*.key"` for a request to open a key
  * file. Here the input is a flat token list with no such structure, so every

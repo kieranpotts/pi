@@ -3,8 +3,8 @@
  *
  * Pi ships seven built-in tools — `read`, `bash`, `edit`, `write`, `grep`,
  * `find`, `ls` — and `bash` is the one that subsumes all the others. Anything
- * the `permission-gate` extension asks about (writes, edits, sensitive files)
- * is reachable through the shell without a prompt, because `permission-gate`
+ * the `tool-gate` extension asks about (writes, edits, sensitive files)
+ * is reachable through the shell without a prompt, because `tool-gate`
  * classifies by tool name and `bash` is not a mutating name. This extension
  * closes that route by replacing `bash` with a version that cannot invoke a
  * shell at all, runs a known-good program directly, and asks the operator about
@@ -12,15 +12,15 @@
  *
  * The two extensions are complements, not alternatives:
  *
- *   - `permission-gate` gates by TOOL NAME and file argument, across every tool
+ *   - `tool-gate` gates by TOOL NAME and file argument, across every tool
  *     including any an MCP client registers. It does not read `command`.
  *   - `command-gate` gates the CONTENTS of a command string, which is the one
- *     argument `permission-gate` cannot interpret.
+ *     argument `tool-gate` cannot interpret.
  *
- * Installed together they do not double-prompt: `permission-gate` treats `bash`
+ * Installed together they do not double-prompt: `tool-gate` treats `bash`
  * as non-mutating and passes it straight through to this tool's own vetting.
  *
- * This extension does no logging, matching `permission-gate` — it is built for
+ * This extension does no logging, matching `tool-gate` — it is built for
  * a human watching the session in real time, where the confirmation dialog is
  * the record. (Its ancestor, `audited-tools`, wrote an append-only JSONL trail
  * for an unattended containerised agent. That case now lives in Genie, whose

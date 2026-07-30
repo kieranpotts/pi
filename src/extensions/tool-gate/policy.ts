@@ -1,5 +1,5 @@
 /**
- * Permission policy for the gate: which tool calls require explicit user
+ * Gate policy: which tool calls require explicit user
  * confirmation, and how a confirmation outcome maps to allow/deny.
  *
  * All logic here is pure so the classification and the default-deny behaviour

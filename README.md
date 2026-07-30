@@ -34,13 +34,13 @@ its README, which provides detailed usage instructions.
   so pipes, redirection, chaining, and substitution are rejected outright.
   Read-only inspection tools run directly; anything else — `python`, `rm`, a
   `node -e` one-liner, or any command naming a secret — asks you first and
-  defaults to deny. Closes the route around `permission-gate`, which cannot
+  defaults to deny. Closes the route around `tool-gate`, which cannot
   read a `command` argument.
 
 - [**`pickling-penguins`**](./src/extensions/pickling-penguins/README.md): \
   Cosmetic-only replacement for Pi's "Working..." status line. Just for fun.
 
-- [**`permission-gate`**](./src/extensions/permission-gate/README.md): \
+- [**`tool-gate`**](./src/extensions/tool-gate/README.md): \
   Interactive, default-deny confirmation before any mutating tool call or any
   call touching a sensitive file (secrets, key material). Built for eyes-on,
   at-keyboard use — no logging, the dialog itself is the record. See
@@ -84,8 +84,9 @@ Examples:
 
 ```sh
 ./run/install                             # Install all extensions.
+./run/install command-gate                # Install the command gate only.
 ./run/install pickling-penguins           # Install the picking penguins extension only.
-./run/install permission-gate             # Install the permission gate only.
+./run/install tool-gate                   # Install the tool gate only.
 ./run/install role-switcher               # Install the role switcher, and seed ~/.pi/roles/.
 ./run/install --list                      # See what's available to install.
 ```
