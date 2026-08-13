@@ -19,7 +19,7 @@ The repository currently ships four extensions:
   randomly composed nonsense.
 - `tool-gate`, an interactive, default-deny confirmation gate for
   mutating tool calls and sensitive-file access, built for eyes-on,
-  at-keyboard use. It gates tool *calls*; restricting which tools exist is a
+  at-keyboard use. It gates tool *calls*. Restricting which tools exist is a
   separate Pi feature.
 - `role-switcher`, which swaps Pi's system prompt for a named role, discovered
   as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with
@@ -35,8 +35,9 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 ## Tech stack
 
 - TypeScript, run directly by Pi and by Node's native type stripping – no
-  compile or bundling step. Type checking is a separate gate (`tsc --noEmit`) —
-  "no build" means nothing is emitted or bundled, not that types are unchecked.
+  compile or bundling step. Type checking is a separate gate
+  (`tsc --noEmit`) — "no build" means nothing is emitted or bundled, not
+  that types are unchecked.
 
 - Node.js 22.18+ (development uses Node 24) for the tooling and the built-in
   test runner.
@@ -52,66 +53,66 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 
 ## Project structure
 
-- **`src/extensions/<name>/index.ts`**:
+- `src/extensions/<name>/index.ts`. \
   An extension's entry point, with a default-exported factory
   `(pi: ExtensionAPI) => void`. Helper modules (eg. `messages.ts`)
   sit alongside it and are imported with explicit `.ts` extensions.
 
-- **`test/extensions/<name>/`**:
+- `test/extensions/<name>/`. \
   Tests for the Node test runner, mirroring the `src/extensions/`
   layout (`*.test.ts`). Kept out of `src/` so the installer never
   ships them.
 
-- **`src/roles/<name>.md`**:
+- `src/roles/<name>.md`. \
   Seed role definitions for `role-switcher`, copied to `~/.pi/roles/`
-  by `run/install`. Data, not code: each file's body becomes a system
+  by `run/install`. Data, not code. Each file's body becomes a system
   prompt verbatim, optionally preceded by a YAML frontmatter block
   declaring model, thinking level, and tools. Deliberately outside
   `src/extensions/` — the installer copies an extension directory
   wholesale, so seeds kept there would ship into
   `~/.pi/agent/extensions/` as dead weight.
 
-- **`run/`**:
+- `run/`. \
   Dev scripts – `install`, `lint`, `fix`, `typecheck`, `test`, `check`.
 
-- **`tsconfig.json`**:
+- `tsconfig.json`. \
   TypeScript config for the `noEmit` type-check (NodeNext, strict,
   `.ts` import extensions allowed). Not a build config.
 
-- **`run/inc/fn/`**:
+- `run/inc/fn/`. \
   Shared shell helpers (status printers, banners, extension install
   and list helpers).
 
-- **`run/inc/var/`**:
+- `run/inc/var/`. \
   Shared shell variables (ANSI codes).
 
-- **`CONTRIBUTING.md`**:
+- `CONTRIBUTING.md`. \
   How to develop, lint, test, and check extensions.
 
-- **`eslint.config.js`**, **`package.json`**:
+- `eslint.config.js`, `package.json`. \
   Lint configuration and the `npm` script aliases.
 
-- **`.github/workflows/`**:
+- `.github/workflows/`. \
   CI: `check` (lint and test), `validate-commit-messages`, and `sync-labels`.
 
 ## Tools
 
-- **`./run/install [name…]`** to install extensions into
-  `~/.pi/agent/extensions/` (no arguments installs all; `--list` and
-  `--help` are also available).
+- `./run/install [name…]` to install extensions into
+  `~/.pi/agent/extensions/`. No arguments installs all. `--list` and
+  `--help` are also available.
 
-- **`./run/lint`** and **`./run/fix`** to lint and auto-fix with ESLint.
+- `./run/lint` and `./run/fix` to lint and auto-fix with ESLint.
 
-- **`./run/typecheck`** to type-check with `tsc --noEmit` (extra args
+- `./run/typecheck` to type-check with `tsc --noEmit` (extra args
   forwarded, eg. `--watch`).
 
-- **`./run/test`** to run the test suite (extra arguments are forwarded
+- `./run/test` to run the test suite (extra arguments are forwarded
   to `node --test`, eg. `--watch`).
 
-- **`./run/check`** to run the linter, then the type-check, then the tests –
-  the command CI runs, and the one to run before committing.
+- `./run/check` to run the linter, then the type-check, then the tests.
+  This is the command CI runs, and the one to run before committing.
 
-- **`shellcheck run/install run/lint run/fix run/test run/check run/inc/**/*.sh`**
+- `shellcheck run/install run/lint run/fix run/test run/check run/inc/**/*.sh`
   to lint the shell scripts.
 
 Each `run/` script is also exposed as an `npm run` alias
@@ -124,16 +125,17 @@ Each `run/` script is also exposed as an `npm run` alias
   `(pi: ExtensionAPI) => void`.
 
 - MUST import Pi's types from `@earendil-works/pi-coding-agent`, and import
-  local helper modules with their explicit `.ts` extension – both Pi and Node's
-  type stripping require it.
+  local helper modules with their explicit `.ts` extension – both Pi and
+  Node's type stripping require it.
 
 - MUST register a new extension in the `available_extensions` array in
-  `run/install` and add a matching description arm to `list_available_extensions`
-  in `run/inc/fn/extensions.sh`, or the installer will not offer it.
+  `run/install` and add a matching description arm to
+  `list_available_extensions` in `run/inc/fn/extensions.sh`, or the
+  installer will not offer it.
 
-- MUST keep tests under `test/extensions/<name>/`, mirroring the `src/extensions/`
-  layout, and never inside `src/`, because `run/install` copies each extension
-  directory verbatim and would otherwise ship them.
+- MUST keep tests under `test/extensions/<name>/`, mirroring the
+  `src/extensions/` layout, and never inside `src/`, because `run/install`
+  copies each extension directory verbatim and would otherwise ship them.
 
 - MUST run `./run/check` and get a clean pass before committing. CI runs the
   same command on every push and pull request. `check` now includes `typecheck`,
@@ -141,7 +143,7 @@ Each `run/` script is also exposed as an `npm run` alias
 
 - SHOULD avoid `as never` / `as any` at the `registerTool` and event-handler
   seams. Where Pi's types expect a TypeBox `TSchema` but a plain JSON Schema
-  is passed at runtime, an escape hatch is sometimes unavoidable; keep it to
+  is passed at runtime, an escape hatch is sometimes unavoidable. Keep it to
   the single seam, comment why, and never use it to silence a genuine type
   error in the surrounding logic.
 
