@@ -163,3 +163,24 @@ Each `run/` script is also exposed as an `npm run` alias
 
 Skills that are specific to this project are installed in `./agents/skills/`.
 None are defined yet.
+
+## References
+
+The following technical standards (TS) govern this project. Fetch and ingest
+the relevant standards as-and-when required for the task at hand.
+
+- [**TS-9: Version Control**](https://kieranpotts.com/standards/009) \
+  Use when working with Git. Covers commits, branching, merging, integration
+  strategies, cutting releases, and configuring Git/PR/CI tooling.
+
+- [**TS-26: Technical Writing Style Guide**](https://kieranpotts.com/standards/026) \
+  Use when writing or editing the prose of a technical document. Covers
+  tone-of-voice, headings, terminology, lists, and citations.
+
+- [**TS-36: ECMAScript (JavaScript/TypeScript)**](https://kieranpotts.com/standards/036) \
+  Use when writing or reviewing JavaScript or TypeScript source code. Covers
+  syntax, modules, async programming, functional patterns, and testing.
+
+- [**TS-60: GitHub Actions**](https://kieranpotts.com/standards/060) \
+  Use when designing, authoring, reviewing, or securing GitHub Actions workflows
+  or custom actions.
