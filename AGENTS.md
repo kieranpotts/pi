@@ -1,49 +1,27 @@
 # Pi
 
-Personal and experimental extensions for the [Pi coding agent](https://pi.dev)
-(`@earendil-works/pi-coding-agent`). Each extension is a TypeScript module
-that hooks into Pi's lifecycle events.
+Personal and experimental extensions for the [Pi coding agent](https://pi.dev) (`@earendil-works/pi-coding-agent`). Each extension is a TypeScript module that hooks into Pi's lifecycle events.
 
-Extensions live under `src/extensions/<name>/` and are installed into Pi's
-extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which
-copies each extension directory verbatim. Pi runs the source TypeScript
-directly – there is no build step.
+Extensions live under `src/extensions/<name>/` and are installed into Pi's extensions directory (`~/.pi/agent/extensions/`) by `run/install`, which copies each extension directory verbatim. Pi runs the source TypeScript directly – there is no build step.
 
 The repository currently ships four extensions:
 
-- `command-gate`, which replaces Pi's built-in `bash` with a runner that never
-  invokes a shell: shell operators are rejected, read-only inspection programs
-  run directly, and anything else — an unrecognised program, or a command
-  naming a secret — is confirmed with the operator, default-deny.
-- `pickling-penguins`, which replaces the default "Working…" status with
-  randomly composed nonsense.
-- `tool-gate`, an interactive, default-deny confirmation gate for
-  mutating tool calls and sensitive-file access, built for eyes-on,
-  at-keyboard use. It gates tool *calls*. Restricting which tools exist is a
-  separate Pi feature.
-- `role-switcher`, which swaps Pi's system prompt for a named role, discovered
-  as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with
-  `/role`. A role may also declare its model, thinking level, and tool set in
-  YAML frontmatter, applied when the role is selected.
+- `command-gate`, which replaces Pi's built-in `bash` with a runner that never invokes a shell: shell operators are rejected, read-only inspection programs run directly, and anything else — an unrecognised program, or a command naming a secret — is confirmed with the operator, default-deny.
+- `pickling-penguins`, which replaces the default "Working…" status with randomly composed nonsense.
+- `tool-gate`, an interactive, default-deny confirmation gate for mutating tool calls and sensitive-file access, built for eyes-on, at-keyboard use. It gates tool *calls*. Restricting which tools exist is a separate Pi feature.
+- `role-switcher`, which swaps Pi's system prompt for a named role, discovered as `<name>.md` files under `~/.pi/roles/` and `.pi/roles/` and selected with `/role`. A role may also declare its model, thinking level, and tool set in YAML frontmatter, applied when the role is selected.
 
 See each extension's own README under `src/extensions/<name>/` for details.
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD,
-SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
+The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in [IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
 
 ## Tech stack
 
-- TypeScript, run directly by Pi and by Node's native type stripping – no
-  compile or bundling step. Type checking is a separate gate
-  (`tsc --noEmit`) — "no build" means nothing is emitted or bundled, not
-  that types are unchecked.
+- TypeScript, run directly by Pi and by Node's native type stripping – no compile or bundling step. Type checking is a separate gate (`tsc --noEmit`) — "no build" means nothing is emitted or bundled, not that types are unchecked.
 
-- Node.js 22.18+ (development uses Node 24) for the tooling and the built-in
-  test runner.
+- Node.js 22.18+ (development uses Node 24) for the tooling and the built-in test runner.
 
-- ESLint with [neostandard](https://github.com/neostandard/neostandard) style,
-  ie. single quotes and no semicolons.
+- ESLint with [neostandard](https://github.com/neostandard/neostandard) style, ie. single quotes and no semicolons.
 
 - The Node.js built-in test runner (`node:test`, `node:assert`).
 
@@ -54,34 +32,22 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 ## Project structure
 
 - `src/extensions/<name>/index.ts`. \
-  An extension's entry point, with a default-exported factory
-  `(pi: ExtensionAPI) => void`. Helper modules (eg. `messages.ts`)
-  sit alongside it and are imported with explicit `.ts` extensions.
+  An extension's entry point, with a default-exported factory `(pi: ExtensionAPI) => void`. Helper modules (eg. `messages.ts`) sit alongside it and are imported with explicit `.ts` extensions.
 
 - `test/extensions/<name>/`. \
-  Tests for the Node test runner, mirroring the `src/extensions/`
-  layout (`*.test.ts`). Kept out of `src/` so the installer never
-  ships them.
+  Tests for the Node test runner, mirroring the `src/extensions/` layout (`*.test.ts`). Kept out of `src/` so the installer never ships them.
 
 - `src/roles/<name>.md`. \
-  Seed role definitions for `role-switcher`, copied to `~/.pi/roles/`
-  by `run/install`. Data, not code. Each file's body becomes a system
-  prompt verbatim, optionally preceded by a YAML frontmatter block
-  declaring model, thinking level, and tools. Deliberately outside
-  `src/extensions/` — the installer copies an extension directory
-  wholesale, so seeds kept there would ship into
-  `~/.pi/agent/extensions/` as dead weight.
+  Seed role definitions for `role-switcher`, copied to `~/.pi/roles/` by `run/install`. Data, not code. Each file's body becomes a system prompt verbatim, optionally preceded by a YAML frontmatter block declaring model, thinking level, and tools. Deliberately outside `src/extensions/` — the installer copies an extension directory wholesale, so seeds kept there would ship into `~/.pi/agent/extensions/` as dead weight.
 
 - `run/`. \
   Dev scripts – `install`, `lint`, `fix`, `typecheck`, `test`, `check`.
 
 - `tsconfig.json`. \
-  TypeScript config for the `noEmit` type-check (NodeNext, strict,
-  `.ts` import extensions allowed). Not a build config.
+  TypeScript config for the `noEmit` type-check (NodeNext, strict, `.ts` import extensions allowed). Not a build config.
 
 - `run/inc/fn/`. \
-  Shared shell helpers (status printers, banners, extension install
-  and list helpers).
+  Shared shell helpers (status printers, banners, extension install and list helpers).
 
 - `run/inc/var/`. \
   Shared shell variables (ANSI codes).
@@ -97,90 +63,58 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 
 ## Tools
 
-- `./run/install [name…]` to install extensions into
-  `~/.pi/agent/extensions/`. No arguments installs all. `--list` and
-  `--help` are also available.
+- `./run/install [name…]` to install extensions into `~/.pi/agent/extensions/`. No arguments installs all. `--list` and `--help` are also available.
 
 - `./run/lint` and `./run/fix` to lint and auto-fix with ESLint.
 
-- `./run/typecheck` to type-check with `tsc --noEmit` (extra args
-  forwarded, eg. `--watch`).
+- `./run/typecheck` to type-check with `tsc --noEmit` (extra args forwarded, eg. `--watch`).
 
-- `./run/test` to run the test suite (extra arguments are forwarded
-  to `node --test`, eg. `--watch`).
+- `./run/test` to run the test suite (extra arguments are forwarded to `node --test`, eg. `--watch`).
 
-- `./run/check` to run the linter, then the type-check, then the tests.
-  This is the command CI runs, and the one to run before committing.
+- `./run/check` to run the linter, then the type-check, then the tests. This is the command CI runs, and the one to run before committing.
 
-- `shellcheck run/install run/lint run/fix run/test run/check run/inc/**/*.sh`
-  to lint the shell scripts.
+- `shellcheck run/install run/lint run/fix run/test run/check run/inc/**/*.sh` to lint the shell scripts.
 
-Each `run/` script is also exposed as an `npm run` alias
-(`lint`, `fix`, `typecheck`, `test`, `check`).
+Each `run/` script is also exposed as an `npm run` alias (`lint`, `fix`, `typecheck`, `test`, `check`).
 
 ## Rules
 
-- MUST author each extension as a directory `src/extensions/<name>/` with an
-  `index.ts` entry point that default-exports a factory function
-  `(pi: ExtensionAPI) => void`.
+- MUST author each extension as a directory `src/extensions/<name>/` with an `index.ts` entry point that default-exports a factory function `(pi: ExtensionAPI) => void`.
 
-- MUST import Pi's types from `@earendil-works/pi-coding-agent`, and import
-  local helper modules with their explicit `.ts` extension – both Pi and
-  Node's type stripping require it.
+- MUST import Pi's types from `@earendil-works/pi-coding-agent`, and import local helper modules with their explicit `.ts` extension – both Pi and Node's type stripping require it.
 
-- MUST register a new extension in the `available_extensions` array in
-  `run/install` and add a matching description arm to
-  `list_available_extensions` in `run/inc/fn/extensions.sh`, or the
-  installer will not offer it.
+- MUST register a new extension in the `available_extensions` array in `run/install` and add a matching description arm to `list_available_extensions` in `run/inc/fn/extensions.sh`, or the installer will not offer it.
 
-- MUST keep tests under `test/extensions/<name>/`, mirroring the
-  `src/extensions/` layout, and never inside `src/`, because `run/install`
-  copies each extension directory verbatim and would otherwise ship them.
+- MUST keep tests under `test/extensions/<name>/`, mirroring the `src/extensions/` layout, and never inside `src/`, because `run/install` copies each extension directory verbatim and would otherwise ship them.
 
-- MUST run `./run/check` and get a clean pass before committing. CI runs the
-  same command on every push and pull request. `check` now includes `typecheck`,
-  so the build must type-check as well as lint and test.
+- MUST run `./run/check` and get a clean pass before committing. CI runs the same command on every push and pull request. `check` now includes `typecheck`, so the build must type-check as well as lint and test.
 
-- SHOULD avoid `as never` / `as any` at the `registerTool` and event-handler
-  seams. Where Pi's types expect a TypeBox `TSchema` but a plain JSON Schema
-  is passed at runtime, an escape hatch is sometimes unavoidable. Keep it to
-  the single seam, comment why, and never use it to silence a genuine type
-  error in the surrounding logic.
+- SHOULD avoid `as never` / `as any` at the `registerTool` and event-handler seams. Where Pi's types expect a TypeBox `TSchema` but a plain JSON Schema is passed at runtime, an escape hatch is sometimes unavoidable. Keep it to the single seam, comment why, and never use it to silence a genuine type error in the surrounding logic.
 
-- MUST conform to the neostandard style enforced by ESLint. Run `./run/fix`
-  rather than formatting by hand.
+- MUST conform to the neostandard style enforced by ESLint. Run `./run/fix` rather than formatting by hand.
 
-- MUST keep the `run/` shell scripts strict (`set -euo pipefail`) and
-  passing ShellCheck.
+- MUST keep the `run/` shell scripts strict (`set -euo pipefail`) and passing ShellCheck.
 
-- SHOULD keep pure, testable logic in helper modules (eg. `messages.ts`) so
-  it can be unit-tested without faking the `ExtensionAPI`.
+- SHOULD keep pure, testable logic in helper modules (eg. `messages.ts`) so it can be unit-tested without faking the `ExtensionAPI`.
 
-- SHOULD write documentation prose as one line per paragraph, with no hard
-  wrapping, and let the editor soft-wrap.
+- SHOULD write documentation prose as one line per paragraph, with no hard wrapping, and let the editor soft-wrap.
 
 ## Skills
 
-Skills that are specific to this project are installed in `./agents/skills/`.
-None are defined yet.
+Skills that are specific to this project are installed in `./agents/skills/`. None are defined yet.
 
 ## References
 
-The following technical standards (TS) govern this project. Fetch and ingest
-the relevant standards as-and-when required for the task at hand.
+The following technical standards (TS) govern this project. Fetch and ingest the relevant standards as-and-when required for the task at hand.
 
 - [**TS-9: Version Control**](https://kieranpotts.com/standards/009) \
-  Use when working with Git. Covers commits, branching, merging, integration
-  strategies, cutting releases, and configuring Git/PR/CI tooling.
+  Use when working with Git. Covers commits, branching, merging, integration strategies, cutting releases, and configuring Git/PR/CI tooling.
 
 - [**TS-26: Technical Writing Style Guide**](https://kieranpotts.com/standards/026) \
-  Use when writing or editing the prose of a technical document. Covers
-  tone-of-voice, headings, terminology, lists, and citations.
+  Use when writing or editing the prose of a technical document. Covers tone-of-voice, headings, terminology, lists, and citations.
 
 - [**TS-36: ECMAScript (JavaScript/TypeScript)**](https://kieranpotts.com/standards/036) \
-  Use when writing or reviewing JavaScript or TypeScript source code. Covers
-  syntax, modules, async programming, functional patterns, and testing.
+  Use when writing or reviewing JavaScript or TypeScript source code. Covers syntax, modules, async programming, functional patterns, and testing.
 
 - [**TS-60: GitHub Actions**](https://kieranpotts.com/standards/060) \
-  Use when designing, authoring, reviewing, or securing GitHub Actions workflows
-  or custom actions.
+  Use when designing, authoring, reviewing, or securing GitHub Actions workflows or custom actions.

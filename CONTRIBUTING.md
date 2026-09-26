@@ -1,22 +1,15 @@
 # Contributing
 
 > [!NOTE]
-> External contributions to this project are not accepted – this is a personal
-> project. These contributing guidelines are for the benefit of the author.
+> External contributions to this project are not accepted – this is a personal project. These contributing guidelines are for the benefit of the author.
 
-This page covers working on the extensions themselves. To just install and use
-them, see the [README](./README.md) instead.
+This page covers working on the extensions themselves. To just install and use them, see the [README](./README.md) instead.
 
-The [Pi extension docs](https://pi.dev/docs/latest/extensions) are the primary
-reference for writing extensions — the `ExtensionAPI`, lifecycle events, custom
-tools, commands, and UI. The notes below cover the conventions specific to this
-repository.
+The [Pi extension docs](https://pi.dev/docs/latest/extensions) are the primary reference for writing extensions — the `ExtensionAPI`, lifecycle events, custom tools, commands, and UI. The notes below cover the conventions specific to this repository.
 
 ## Prerequisites
 
-Development needs [Node.js][node] (with `npm`) for the linting toolchain, in
-addition to the runtime requirements in the [README](./README.md). Install the
-dev dependencies once, from the repository root:
+Development needs [Node.js][node] (with `npm`) for the linting toolchain, in addition to the runtime requirements in the [README](./README.md). Install the dev dependencies once, from the repository root:
 
 ```sh
 npm install
@@ -24,8 +17,7 @@ npm install
 
 ## Project layout
 
-Each extension lives in its own directory under `src/extensions/`, with an
-`index.ts` entry point:
+Each extension lives in its own directory under `src/extensions/`, with an `index.ts` entry point:
 
 ```text
 src/
@@ -37,45 +29,35 @@ src/
 Extensions must be registered in two places:
 
 - `run/install`. Add the name to the `available_extensions` array.
-- `run/inc/fn/extensions.sh`. Add a `case` branch giving its one-line
-  description.
+- `run/inc/fn/extensions.sh`. Add a `case` branch giving its one-line description.
 
 ## Linting
 
-Extensions are linted with [ESLint][eslint] using the [neostandard][neostandard]
-config in [`eslint.config.js`](./eslint.config.js). Two scripts wrap it:
+Extensions are linted with [ESLint][eslint] using the [neostandard][neostandard] config in [`eslint.config.js`](./eslint.config.js). Two scripts wrap it:
 
 ```sh
 ./run/lint   # Report problems.
 ./run/fix    # Auto-fix what can be fixed, then report the rest.
 ```
 
-Both forward any extra arguments to ESLint, eg. `./run/lint --quiet`. The
-commands can also be executed as `npm run lint` and `npm run fix`.
+Both forward any extra arguments to ESLint, eg. `./run/lint --quiet`. The commands can also be executed as `npm run lint` and `npm run fix`.
 
 ## Testing
 
-Tests use the [Node.js built-in test runner][node-test] (`node:test` and
-`node:assert`) and run TypeScript directly through Node's native type stripping,
-so there is no test framework to install and no build step. Node 22.18 or newer
-is required.
+Tests use the [Node.js built-in test runner][node-test] (`node:test` and `node:assert`) and run TypeScript directly through Node's native type stripping, so there is no test framework to install and no build step. Node 22.18 or newer is required.
 
-Test files live under `test/`, mirroring the `src/` layout, and are named
-`*.test.ts`. Keeping them out of `src/` means the installer never ships them
-with an extension.
+Test files live under `test/`, mirroring the `src/` layout, and are named `*.test.ts`. Keeping them out of `src/` means the installer never ships them with an extension.
 
 ```sh
 ./run/test            # Run all tests once.
 ./run/test --watch    # Re-run on change.
 ```
 
-Extra arguments are forwarded to `node --test`, and the command is also exposed
-as `npm test`.
+Extra arguments are forwarded to `node --test`, and the command is also exposed as `npm test`.
 
 ## Running all checks
 
-`./run/check` runs the linter and then the tests in sequence, stopping at the
-first failure. It is the single command to run before committing:
+`./run/check` runs the linter and then the tests in sequence, stopping at the first failure. It is the single command to run before committing:
 
 ```sh
 ./run/check
@@ -83,9 +65,7 @@ first failure. It is the single command to run before committing:
 
 It is also exposed as `npm run check`.
 
-The [`Check`](./.github/workflows/check.yaml) GitHub Actions workflow runs this
-same command on every push and pull request, so changes are linted and tested
-automatically.
+The [`Check`](./.github/workflows/check.yaml) GitHub Actions workflow runs this same command on every push and pull request, so changes are linted and tested automatically.
 
 ## Commit messages
 
@@ -101,35 +81,23 @@ pre-commit install
 
 ## Versioning
 
-The extensions are not versioned. There are no release tags, version numbers,
-or changelog. The latest commit on the default branch is the only supported
-state. Reinstall with `./run/install` to pick up changes.
+The extensions are not versioned. There are no release tags, version numbers, or changelog. The latest commit on the default branch is the only supported state. Reinstall with `./run/install` to pick up changes.
 
 ## Repository settings
 
-This repository's GitHub configuration is defined as code in
-`.github/settings.yml`. The configuration is applied by the "Apply Settings"
-workflow on pushes to the default branch.
+This repository's GitHub configuration is defined as code in `.github/settings.yml`. The configuration is applied by the "Apply Settings" workflow on pushes to the default branch.
 
 ### Setting up the admin token
 
-The workflow needs a token with admin-level access. GitHub's built-in
-`GITHUB_TOKEN` is not adequate because it has no `Administration` scope, so
-it cannot change repository settings.
+The workflow needs a token with admin-level access. GitHub's built-in `GITHUB_TOKEN` is not adequate because it has no `Administration` scope, so it cannot change repository settings.
 
-1.  Create a fine-grained personal access token in a GitHub account associated
-    with a code owner of this repository. Set the following scopes:
+1.  Create a fine-grained personal access token in a GitHub account associated with a code owner of this repository. Set the following scopes:
 
     - **Administration**: write
 
     - **Contents**: read
 
-    - Write access to whichever sections are defined in `settings.yml`, eg.
-      **Issues** (for labels, milestones), **Environments**, **Pages**,
-      **Actions**, **Actions variables**, **Repository hooks**,
-      **Secrets**, **Dependabot secrets**, **Codespaces secrets**,
-      **Repository custom properties**, **Secret scanning alerts**. Grant
-      only what the file actually uses.
+    - Write access to whichever sections are defined in `settings.yml`, eg. **Issues** (for labels, milestones), **Environments**, **Pages**, **Actions**, **Actions variables**, **Repository hooks**, **Secrets**, **Dependabot secrets**, **Codespaces secrets**, **Repository custom properties**, **Secret scanning alerts**. Grant only what the file actually uses.
 
 2.  Add it as a repository secret named `ADMIN_TOKEN`.
 
